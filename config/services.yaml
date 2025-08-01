@@ -1,0 +1,18 @@
+imports:
+    - { resource: packages/parameters.yaml }
+
+services:
+    App\UI\Http\Controller\:
+        resource: "../src/UI/Http/Controller"
+        tags: ["controller.service_arguments"]
+        autowire: true
+        autoconfigure: true
+    App\Domain\Repository\:
+        resource: '../src/Domain/Repository'
+        autowire: true
+        autoconfigure: true
+    App\DataFixtures\:
+        resource: '../src/DataFixtures'
+        tags: ['doctrine.fixture.orm']
+        autoconfigure: true
+        autowire: true

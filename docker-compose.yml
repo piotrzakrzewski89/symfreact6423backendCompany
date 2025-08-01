@@ -1,0 +1,56 @@
+services:
+    php:
+        build:
+            context: ./docker/php
+            args:
+                TIMEZONE: Europe/Warsaw
+        container_name: company_php
+        volumes:
+            - ./:/app
+            - './docker/php/conf.d:/usr/local/etc/php/conf.d'
+            - 'php_composer_data:/root/.composer'
+        networks:
+            - network_company
+            - network_rabbit
+            
+    company-www:
+        build: ./docker/www
+        container_name: company-www
+        ports:
+            - 8083:80
+        volumes:
+            - ./:/app
+            - ./docker/www/conf.d:/etc/nginx/conf.d
+        networks:
+            - network_company
+
+    company-db:
+        image: postgres:latest
+        container_name: company-db
+        volumes:
+            - company_db_data:/var/lib/postgresql/data-company
+        ports:
+            - 5435:5432
+        environment:
+            POSTGRES_USER: company
+            POSTGRES_PASSWORD: company
+            TZ: Europe/Warsaw
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U company"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - network_company
+
+volumes:
+    company_db_data:
+    php_composer_data:
+
+networks:
+  network_company:
+    name: network_company
+    driver: bridge
+  network_rabbit:
+    external: true
+    name: network_rabbit
