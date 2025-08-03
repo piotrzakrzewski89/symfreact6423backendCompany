@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Domain\Repository\CompanyRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
+#[ApiResource]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
 #[ORM\Table(name: '`company`')]
 class Company
@@ -19,6 +21,8 @@ class Company
     private int $id;
     #[ORM\Column(type: 'uuid', nullable: false)]
     private Uuid $uuid;
+    #[ORM\Column(length: 255, nullable: false)]
+    private string $email;
     #[ORM\Column(length: 255, nullable: false)]
     private string $longName;
     #[ORM\Column(length: 255, nullable: false)]
@@ -37,13 +41,28 @@ class Company
     private string $buildingNumber;
     #[ORM\Column(length: 255, nullable: true)]
     private string $apartmentNumber;
+    #[ORM\Column(nullable: false)]
     private DateTimeImmutable $createdAt;
     #[ORM\Column(nullable: true)]
-    private ?DateTimeImmutable $updateAt;
-    #[ORM\Column()]
+    private ?DateTimeImmutable $updatedAt;
+    #[ORM\ManyToOne(targetEntity: Admin::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private Admin $createdBy;
-    #[ORM\Column(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Admin::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Admin $updatedBy;
+    #[ORM\Column]
+    private bool $isActive;
+    #[ORM\Column]
+    private bool $isDeleted;
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $deletedAt = null;
+
+    public function __construct()
+    {
+        $this->uuid = Uuid::v4();
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -58,6 +77,18 @@ class Company
     public function setUuid(Uuid $uuid): static
     {
         $this->uuid = $uuid;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): static
+    {
+        $this->email = $email;
 
         return $this;
     }
@@ -170,14 +201,62 @@ class Company
         return $this;
     }
 
-    public function getUpdateAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->updateAt;
+        return $this->createdAt;
     }
 
-    public function setUpdateAt(?\DateTimeImmutable $updateAt): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->updateAt = $updateAt;
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function isActive(): ?bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function isDeleted(): ?bool
+    {
+        return $this->isDeleted;
+    }
+
+    public function setIsDeleted(bool $isDeleted): static
+    {
+        $this->isDeleted = $isDeleted;
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
 
         return $this;
     }
@@ -187,23 +266,22 @@ class Company
         return $this->createdBy;
     }
 
-    public function setCreatedBy(Admin $createdBy): static
+    public function setCreatedBy(?Admin $createdBy): static
     {
         $this->createdBy = $createdBy;
 
         return $this;
     }
 
-    public function getUpdatedBy(): ?string
+    public function getUpdatedBy(): ?Admin
     {
         return $this->updatedBy;
     }
 
-    public function setUpdatedBy(?string $updatedBy): static
+    public function setUpdatedBy(?Admin $updatedBy): static
     {
         $this->updatedBy = $updatedBy;
 
         return $this;
     }
-
 }

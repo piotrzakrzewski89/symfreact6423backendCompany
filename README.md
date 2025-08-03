@@ -15,3 +15,11 @@ dphp vendor/bin/phpunit --coverage-text
 
 dphp vendor/bin/phpcs src --standard=PSR12 - code sniffer
 dphp vendor/bin/phpcbf src - automatyczna naprawa
+
+dphp bin/console d:m:diff
+dphp bin/console d:m:m --env=dev --no-interaction
+dphp bin/console d:m:m --env=test --no-interaction
+dphp bin/console doctrine:fixtures:load --env=dev --no-interaction
+dphp bin/console doctrine:fixtures:load --env=test --no-interaction
+
+dphp bin/console make:entity --regenerate App\\Domain\\Entity\\Company

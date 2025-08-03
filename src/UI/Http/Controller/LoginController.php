@@ -17,14 +17,14 @@ class LoginController extends AbstractController
     public function __construct(
         private AdminRepository $adminRepository,
         private UserPasswordHasherInterface $passwordEncoder
-    ) {}
+    ) {
+    }
 
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        
         $email = $data['email'] ?? null;
         $password = $data['password'] ?? null;
 

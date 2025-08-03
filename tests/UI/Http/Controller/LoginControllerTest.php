@@ -74,12 +74,16 @@ class LoginControllerTest extends BaseTestController
 
     public function testLoginSuccess(): void
     {
-        $this->request('POST', '/api/login', [], [], [
+        $this->request(
+            'POST', '/api/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
-        ], json_encode([
-            'email' => 'admin@example.com',
-            'password' => 'admin', // zakładamy że to hasło odpowiada hashowi z fixtures
-        ]));
+            ], json_encode(
+                [
+                'email' => 'admin@example.com',
+                'password' => 'admin', // zakładamy że to hasło odpowiada hashowi z fixtures
+                ]
+            )
+        );
 
         $response = $this->response();
 
@@ -94,33 +98,43 @@ class LoginControllerTest extends BaseTestController
 
     public function testLoginWithInvalidEmail(): void
     {
-        $this->request('POST', '/api/login', [], [], [
+        $this->request(
+            'POST', '/api/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
-        ], json_encode([
-            'email' => 'wrong@example.com',
-            'password' => 'admin',
-        ]));
+            ], json_encode(
+                [
+                'email' => 'wrong@example.com',
+                'password' => 'admin',
+                ]
+            )
+        );
 
         $this->assertSame(400, $this->response()->getStatusCode());
     }
 
     public function testLoginWithInvalidPassword(): void
     {
-        $this->request('POST', '/api/login', [], [], [
+        $this->request(
+            'POST', '/api/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
-        ], json_encode([
-            'email' => 'admin@example.com',
-            'password' => 'wrong-password',
-        ]));
+            ], json_encode(
+                [
+                'email' => 'admin@example.com',
+                'password' => 'wrong-password',
+                ]
+            )
+        );
 
         $this->assertSame(400, $this->response()->getStatusCode());
     }
 
     public function testLoginWithEmptyData(): void
     {
-        $this->request('POST', '/api/login', [], [], [
+        $this->request(
+            'POST', '/api/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
-        ], json_encode([]));
+            ], json_encode([])
+        );
 
         $this->assertSame(400, $this->response()->getStatusCode());
     }
@@ -141,12 +155,16 @@ class LoginControllerTest extends BaseTestController
         self::getContainer()->get(\Doctrine\ORM\EntityManagerInterface::class)->persist($admin);
         self::getContainer()->get(\Doctrine\ORM\EntityManagerInterface::class)->flush();
 
-        $this->request('POST', '/api/login', [], [], [
+        $this->request(
+            'POST', '/api/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
-        ], json_encode([
-            'email' => 'notadmin@example.com',
-            'password' => 'secret',
-        ]));
+            ], json_encode(
+                [
+                'email' => 'notadmin@example.com',
+                'password' => 'secret',
+                ]
+            )
+        );
 
         $this->assertSame(403, $this->response()->getStatusCode());
     }
