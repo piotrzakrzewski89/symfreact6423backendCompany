@@ -4,19 +4,34 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use App\Application\Factory\CompanyFactory;
+use App\Application\Service\CompanyService;
+use App\Domain\Repository\CompanyRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class BaseTestController extends WebTestCase
 {
     protected KernelBrowser $client;
+    protected ValidatorInterface $validator;
+    protected CompanyRepository $repo;
+    protected EntityManagerInterface $em;
+    protected CompanyFactory $factory;
+    protected CompanyService $service;
 
     protected function setUp(): void
     {
         $this->setUpClient();
         $container = static::getContainer();
         $connection = $container->get('database_connection');
+        $this->validator = self::getContainer()->get(ValidatorInterface::class);
+        $this->repo = $this->createMock(CompanyRepository::class);
+        $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->factory = $this->createMock(CompanyFactory::class);
+        $this->service = new CompanyService($this->repo, $this->em, $this->factory);
 
         // Przywróć stan bazy
         $connection->executeStatement('TRUNCATE TABLE "company" RESTART IDENTITY CASCADE');

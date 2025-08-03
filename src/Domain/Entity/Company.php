@@ -40,7 +40,7 @@ class Company
     #[ORM\Column(length: 255, nullable: false)]
     private string $buildingNumber;
     #[ORM\Column(length: 255, nullable: true)]
-    private string $apartmentNumber;
+    private ?string $apartmentNumber;
     #[ORM\Column(nullable: false)]
     private DateTimeImmutable $createdAt;
     #[ORM\Column(nullable: true)]
@@ -283,5 +283,28 @@ class Company
         $this->updatedBy = $updatedBy;
 
         return $this;
+    }
+
+    public function activate(Admin $admin): void
+    {
+        $this->isActive = true;
+        $this->updatedBy = $admin;
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function deactivate(Admin $admin): void
+    {
+        $this->isActive = false;
+        $this->updatedBy = $admin;
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function softDelete(Admin $admin): void
+    {
+        $this->isDeleted = true;
+        $this->isActive = false;
+        $this->deletedAt = new \DateTimeImmutable();
+        $this->updatedBy = $admin;
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

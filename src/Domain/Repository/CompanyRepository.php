@@ -18,8 +18,11 @@ class CompanyRepository extends ServiceEntityRepository
         parent::__construct($registry, Company::class);
     }
 
-    public function getAllCompanies()
+    public function getAllCompanies(): array
     {
-        return [];
+        return $this->createQueryBuilder('c')
+            ->where('c.isDeleted = false')
+            ->getQuery()
+            ->getResult();
     }
 }

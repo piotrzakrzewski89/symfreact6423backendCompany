@@ -6,8 +6,6 @@ namespace App\UI\Http\Controller;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Application\Dto\CompanyDto;
-use App\Domain\Entity\Admin;
-use App\Domain\Entity\Company;
 use App\Domain\Repository\CompanyRepository;
 use OpenApi\Attributes as OA;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,8 +18,9 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
-use DateTimeImmutable;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Application\Factory\CompanyDtoFactory;
+use App\Application\Service\CompanyService;
 
 #[ApiResource(
     operations: [
@@ -37,9 +36,11 @@ class CompanyController
     public function __construct(
         private CompanyRepository $companyRepository,
         private EntityManagerInterface $em,
-        private readonly UserPasswordHasherInterface $passwordHasher
-    ) {
-    }
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private CompanyService $companyService,
+        private CompanyDtoFactory $companyDtoFactory,
+        private ValidatorInterface $validator
+    ) {}
 
     #[OA\Get(
         path: '/api/list-company',
@@ -59,9 +60,7 @@ class CompanyController
     #[Route('/api/list-company', name: 'api_company_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        $users = $this->companyRepository->getAllCompanies();
-
-        return new JsonResponse(CompanyDto::fromEntities($users));
+        return new JsonResponse(CompanyDto::fromEntities($this->companyRepository->getAllCompanies()));
     }
 
     #[OA\Get(
@@ -82,28 +81,25 @@ class CompanyController
     #[Route('/api/new-company', name: 'api_company_new', methods: ['POST'])]
     public function new(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        try {
+            $dto = $this->companyDtoFactory->fromRequest($request);
+        } catch (\InvalidArgumentException $e) {
+            // Obsłuż brakujące pola lub inne błędy konstrukcji DTO
+            return new JsonResponse(['errors' => $e->getMessage()], 400);
+        }
 
-        $company = new Company();
-        $company->setUuid(Uuid::fromString($data['uuid']))
-            ->setEmail($data['email'])
-            ->setShortName($data['shortName'])
-            ->setLongName($data['longName'])
-            ->setTaxNumber($data['taxNumber'])
-            ->setCountry($data['country'])
-            ->setCity($data['city'])
-            ->setPostalCode($data['postalCode'])
-            ->setStreet($data['street'])
-            ->setBuildingNumber($data['buildingNumber'])
-            ->setApartmentNumber($data['apartmentNumber'])
-            ->setIsActive($data['isActive'])
-            ->setIsDeleted(false)
-            ->setCreatedBy($this->em->getReference(Admin::class, 1));
+        $errors = $this->validator->validate($dto);
+        if (count($errors) > 0) {
+            return new JsonResponse(['errors' => (string) $errors], 400);
+        }
 
-        $this->em->persist($company);
-        $this->em->flush();
+        try {
+            $company = $this->companyService->createCompany($dto, 1);
+        } catch (\DomainException $e) {
+            return new JsonResponse(['errors' => $e->getMessage()], 400);
+        }
 
-        return new JsonResponse(['saved' => 'ok'], 200);
+        return new JsonResponse(['saved' => 'ok', 'id' => $company->getId()]);
     }
 
     #[OA\Get(
@@ -124,33 +120,29 @@ class CompanyController
     #[Route('/api/edit-company/{id}', name: 'api_company_edit', methods: ['POST'])]
     public function edit(Request $request, int $id): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        $company = $this->em->getRepository(Company::class)->findOneBy(['id' => $id]);
-
-        if (!$company) {
-            return new JsonResponse(['error' => 'Firma nie znaleziona'], 404);
+        try {
+            $dto = $this->companyDtoFactory->fromRequest($request);
+            $dto->id = $id;
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse(['errors' => $e->getMessage()], 400);
         }
 
-        $company->setUuid(Uuid::fromString($data['uuid']))
-            ->setEmail($data['email'])
-            ->setShortName($data['shortName'])
-            ->setLongName($data['longName'])
-            ->setTaxNumber($data['taxNumber'])
-            ->setCountry($data['country'])
-            ->setCity($data['city'])
-            ->setPostalCode($data['postalCode'])
-            ->setStreet($data['street'])
-            ->setBuildingNumber($data['buildingNumber'])
-            ->setApartmentNumber($data['apartmentNumber'])
-            ->setIsActive($data['isActive'])
-            ->setIsDeleted(false)
-            ->setCreatedBy($this->em->getReference(Admin::class, 1));
+        $errors = $this->validator->validate($dto);
+        if (count($errors) > 0) {
+            return new JsonResponse(['errors' => (string) $errors], 400);
+        }
 
-        $this->em->persist($company);
-        $this->em->flush();
+        try {
+            $company = $this->companyService->updateCompany($dto, 1);
+        } catch (\DomainException $e) {
+            return new JsonResponse(['errors' => $e->getMessage()], 400);
+        }
 
-        return new JsonResponse(['saved' => 'ok'], 200);
+        if (!$company) {
+            return new JsonResponse(['errors' => 'Firma nie znaleziona'], 404);
+        }
+
+        return new JsonResponse(['saved' => 'ok', 'id' => $company->getId()]);
     }
 
     #[OA\Get(
@@ -169,22 +161,13 @@ class CompanyController
         ]
     )]
     #[Route('/api/delete-company/{id}', name: 'api_company_delete', methods: ['POST'])]
-    public function delete(Request $request, int $id): JsonResponse
+    public function delete(int $id): JsonResponse
     {
-        $company = $this->em->getRepository(Company::class)->findOneBy(['id' => $id]);
+        $company = $this->companyService->deleteCompany($id, 1);
 
         if (!$company) {
-            return new JsonResponse(['error' => 'Firma nie znaleziona'], 404);
+            return new JsonResponse(['errors' => 'Firma nie znaleziona'], 404);
         }
-
-        $company->setIsDeleted(true)
-            ->setIsActive(false)
-            ->setUpdatedBy($this->em->getReference(Admin::class, 1))
-            ->setUpdatedAt(new DateTimeImmutable())
-            ->setDeletedAt(new DateTimeImmutable());
-
-        $this->em->persist($company);
-        $this->em->flush();
 
         return new JsonResponse(['api_company_delete' => 'ok'], 200);
     }
@@ -205,25 +188,13 @@ class CompanyController
         ]
     )]
     #[Route('/api/change-active-company/{id}', name: 'api_company_change-active', methods: ['POST'])]
-    public function changeActive(Request $request, int $id): JsonResponse
+    public function changeActive(int $id): JsonResponse
     {
-        $company = $this->em->getRepository(Company::class)->findOneBy(['id' => $id]);
+        $company = $this->companyService->changeActive($id, 1);
 
         if (!$company) {
-            return new JsonResponse(['error' => 'Firma nie znaleziona'], 404);
+            return new JsonResponse(['errors' => 'Firma nie znaleziona'], 404);
         }
-
-        if (true === $company->isActive()) {
-            $company->setIsActive(false);
-        } else {
-            $company->setIsActive(true);
-        }
-
-        $company->setUpdatedBy($this->em->getReference(Admin::class, 1))
-            ->setUpdatedAt(new DateTimeImmutable());
-
-        $this->em->persist($company);
-        $this->em->flush();
 
         return new JsonResponse(['api_company_change' => 'ok'], 200);
     }

@@ -16,7 +16,7 @@ class LoginController extends AbstractController
 {
     public function __construct(
         private AdminRepository $adminRepository,
-        private UserPasswordHasherInterface $passwordEncoder
+        private UserPasswordHasherInterface $passwordHasher
     ) {
     }
 
@@ -38,7 +38,7 @@ class LoginController extends AbstractController
             return new JsonResponse(['error' => 'Admin po danym mailu nie istnieje'], 400);
         }
 
-        if (!$this->passwordEncoder->isPasswordValid($admin, $password)) {
+        if (!$this->passwordHasher->isPasswordValid($admin, $password)) {
             return new JsonResponse(['error' => 'Nie prawidlowe haslo'], 400);
         }
 
