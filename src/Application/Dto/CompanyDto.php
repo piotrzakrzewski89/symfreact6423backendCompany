@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace App\Application\Dto;
 
 use App\Domain\Entity\Company;
-use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class CompanyDto
 {
     public ?int $id;
-
-    #[Assert\NotBlank(message: 'UUID jest wymagany')]
-    public Uuid $uuid;
 
     #[Assert\NotBlank(message: 'Email jest wymagany')]
     #[Assert\Email(message: 'Nieprawidłowy adres email')]
@@ -51,7 +47,6 @@ class CompanyDto
 
     public function __construct(
         ?int $id,
-        Uuid $uuid,
         string $email,
         string $shortName,
         string $longName,
@@ -65,7 +60,6 @@ class CompanyDto
         bool $isActive,
     ) {
         $this->id = $id;
-        $this->uuid = $uuid;
         $this->email = $email;
         $this->shortName = $shortName;
         $this->longName = $longName;
@@ -84,7 +78,6 @@ class CompanyDto
     {
         return new self(
             $company->getId(),
-            $company->getUuid(),
             $company->getEmail(),
             $company->getShortName(),
             $company->getLongName(),

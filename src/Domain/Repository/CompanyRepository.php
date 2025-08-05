@@ -25,4 +25,14 @@ class CompanyRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getCompany(int $id): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.isDeleted = false')
+            ->andWhere('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getResult();
+    }
 }

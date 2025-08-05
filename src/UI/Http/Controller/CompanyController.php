@@ -40,9 +40,31 @@ class CompanyController
         private CompanyService $companyService,
         private CompanyDtoFactory $companyDtoFactory,
         private ValidatorInterface $validator
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
+        path: '/api/get-company',
+        summary: 'Firma po id',
+        tags: ['Companies'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Firma po id',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/CompanyDto')
+                )
+            )
+        ]
+    )]
+    #[Route('/api/get-company/{id}', name: 'api_company_get', methods: ['GET'])]
+    public function getById(int $id): JsonResponse
+    {
+        return new JsonResponse(CompanyDto::fromEntities($this->companyRepository->getCompany($id)));
+    }
+
+        #[OA\Get(
         path: '/api/list-company',
         summary: 'Lista Firm',
         tags: ['Companies'],

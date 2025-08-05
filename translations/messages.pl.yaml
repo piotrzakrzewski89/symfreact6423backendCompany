@@ -1,0 +1,11 @@
+email.company.created.subject: "Firma została utworzona"
+email.company.created.body: |
+  <p>Firma <strong>%longName%</strong> została utworzona w systemie.</p>
+  <p><strong>Email kontaktowy:</strong> %email%</p>
+  <p><strong>Miasto:</strong> %city%</p>
+
+email.company.updated.subject: "Firma została zaktualizowana"
+email.company.updated.body: |
+  <p>Firma <strong>%longName%</strong> została zmodyfikowana w systemie.</p>
+  <p><strong>Email kontaktowy:</strong> %email%</p>
+  <p><strong>Miasto:</strong> %city%</p>

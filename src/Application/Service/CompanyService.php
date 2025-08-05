@@ -6,17 +6,21 @@ namespace App\Application\Service;
 
 use App\Application\Dto\CompanyDto;
 use App\Application\Factory\CompanyFactory;
+use App\Application\Message\CompanyUpdatedMessage;
 use App\Domain\Entity\Admin;
 use App\Domain\Entity\Company;
 use App\Domain\Repository\CompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class CompanyService
 {
     public function __construct(
         private CompanyRepository $companyRepository,
         private EntityManagerInterface $em,
-        private CompanyFactory $companyFactory
+        private CompanyFactory $companyFactory,
+        private MessageBusInterface $messageBus,
+        private CompanyMailer $companyMailer
     ) {}
 
     public function createCompany(CompanyDto $dto, int $adminId): Company
@@ -35,6 +39,16 @@ class CompanyService
 
         $this->em->persist($company);
         $this->em->flush();
+
+        $this->companyMailer->sendCreated($company);
+
+        $this->messageBus->dispatch(
+            new CompanyUpdatedMessage(
+                $company->getUuid(),
+                $company->getShortName(),
+                $company->getLongName()
+            )
+        );
 
         return $company;
     }
@@ -61,8 +75,15 @@ class CompanyService
 
         $this->companyFactory->updateFromDto($dto, $company, $this->getAdmin($adminId));
 
-        $this->em->persist($company);
-        $this->em->flush();
+        $this->companyMailer->sendUpdated($company);
+
+        $this->messageBus->dispatch(
+            new CompanyUpdatedMessage(
+                $company->getUuid(),
+                $company->getShortName(),
+                $company->getLongName()
+            )
+        );
 
         return $company;
     }

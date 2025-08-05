@@ -20,7 +20,7 @@ class Company
     #[ORM\Column]
     private int $id;
     #[ORM\Column(type: 'uuid', nullable: false)]
-    private Uuid $uuid;
+    private ?Uuid $uuid = null;
     #[ORM\Column(length: 255, nullable: false)]
     private string $email;
     #[ORM\Column(length: 255, nullable: false)]
@@ -74,7 +74,7 @@ class Company
         return $this->uuid;
     }
 
-    public function setUuid(Uuid $uuid): static
+    public function setUuid(?Uuid $uuid): static
     {
         $this->uuid = $uuid;
 

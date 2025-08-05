@@ -32,7 +32,6 @@ class CompanyFactory
     private function mapDtoToEntity(CompanyDto $dto, Company $company): void
     {
         $company
-            ->setUuid($dto->uuid)
             ->setEmail($dto->email)
             ->setShortName($dto->shortName)
             ->setLongName($dto->longName)

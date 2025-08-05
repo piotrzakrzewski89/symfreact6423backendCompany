@@ -36,13 +36,12 @@ class CompanyControllerTest extends BaseTestController
         $payloadCreate = $this->createCompany();
 
         $companyRepo = self::getContainer()->get(CompanyRepository::class);
-        $company = $companyRepo->findOneBy(['uuid' => $payloadCreate['uuid']]);
+        $company = $companyRepo->findOneBy(['email' => $payloadCreate['email']]);
 
         $companyId = $company->getId();
 
         // Przygotowujemy payload do edycji, zmieniając np. email i nazwę
         $payloadEdit = [
-            'uuid' => $company->getUuid()->toRfc4122(),
             'email' => 'firma@example.com',
             'shortName' => 'ZZ',
             'longName' => 'Zmodyfikowana Sp. z o.o.',
@@ -93,7 +92,7 @@ class CompanyControllerTest extends BaseTestController
         );
 
         $companyRepo = self::getContainer()->get(CompanyRepository::class);
-        $company = $companyRepo->findOneBy(['uuid' => $payloadCreate['uuid']]);
+        $company = $companyRepo->findOneBy(['email' => $payloadCreate['email']]);
 
         $this->assertFalse($company->isActive());
         $this->assertTrue($company->isDeleted());
@@ -104,7 +103,7 @@ class CompanyControllerTest extends BaseTestController
         $payloadCreate = $this->createCompany();
 
         $companyRepo = self::getContainer()->get(CompanyRepository::class);
-        $company = $companyRepo->findOneBy(['uuid' => $payloadCreate['uuid']]);
+        $company = $companyRepo->findOneBy(['email' => $payloadCreate['email']]);
 
         $this->assertTrue($company->isActive());
 
@@ -119,7 +118,7 @@ class CompanyControllerTest extends BaseTestController
 
 
         $companyRepo = self::getContainer()->get(CompanyRepository::class);
-        $company = $companyRepo->findOneBy(['uuid' => $payloadCreate['uuid']]);
+        $company = $companyRepo->findOneBy(['email' => $payloadCreate['email']]);
 
         $this->assertFalse($company->isActive());
 
@@ -133,42 +132,6 @@ class CompanyControllerTest extends BaseTestController
         );
 
         $this->assertFalse($company->isActive());
-    }
-
-
-    private function createCompany(array $override = []): array
-    {
-        $payload = array_merge(
-            [
-                'uuid' => Uuid::v4()->toRfc4122(),
-                'email' => 'firma@example.com',
-                'shortName' => 'TT',
-                'longName' => 'Testowa Sp. z o.o.',
-                'taxNumber' => '1234567890',
-                'country' => 'Polska',
-                'city' => 'Wrocław',
-                'postalCode' => '50-001',
-                'street' => 'Piłsudskiego',
-                'buildingNumber' => '10A',
-                'apartmentNumber' => '5',
-                'isActive' => true,
-            ],
-            $override
-        );
-
-        $this->request(
-            'POST',
-            '/api/new-company',
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($payload)
-        );
-
-        $response = $this->response();
-        $this->assertSame(200, $response->getStatusCode());
-
-        return $payload;
     }
 
     public function testListCompanies(): void
@@ -191,8 +154,8 @@ class CompanyControllerTest extends BaseTestController
 
         // Sprawdź strukturę jednego elementu
         $company = $data[0];
+
         $this->assertArrayHasKey('id', $company);
-        $this->assertArrayHasKey('uuid', $company);
         $this->assertArrayHasKey('email', $company);
         $this->assertArrayHasKey('shortName', $company);
         $this->assertArrayHasKey('isActive', $company);
@@ -202,7 +165,6 @@ class CompanyControllerTest extends BaseTestController
     {
         $dto = new CompanyDto(
             null,
-            Uuid::v4(),
             'firma@example.com',
             'FN',
             'Firma Nowa',
@@ -224,7 +186,6 @@ class CompanyControllerTest extends BaseTestController
     {
         $dto = new CompanyDto(
             null,
-            Uuid::v4(),
             'zly-email',
             'FN',
             'Firma Nowa',
@@ -246,7 +207,6 @@ class CompanyControllerTest extends BaseTestController
     {
         $dto = new CompanyDto(
             null,
-            Uuid::v4(),
             '', // brak emaila
             '', // brak shortName
             '', // brak longName
@@ -552,7 +512,6 @@ class CompanyControllerTest extends BaseTestController
     {
         return new CompanyDto(
             null,
-            Uuid::v4(),
             'test@example.com',
             'SHORT',
             'Long Name',
@@ -640,5 +599,58 @@ class CompanyControllerTest extends BaseTestController
         $data = json_decode((string)$response->getContent(), true);
         $this->assertArrayHasKey('errors', $data);
         $this->assertStringContainsString('Firma nie znaleziona', $data['errors']);
+    }
+
+    public function testGetCompanySkipsDeleted(): void
+    {
+        $payload = $this->createCompany();
+
+        $companyRepo = self::getContainer()->get(CompanyRepository::class);
+        $company = $companyRepo->findOneBy(['email' => $payload['email']]);
+
+        $this->assertNotNull($company);
+
+        // Ustaw isDeleted na true
+        $company->setIsDeleted(true);
+        self::getContainer()->get('doctrine')->getManager()->flush();
+
+        // getCompany powinno zwrócić pustą tablicę
+        $result = $companyRepo->getCompany($company->getId());
+
+        $this->assertCount(0, $result);
+    }
+
+    private function createCompany(array $override = []): array
+    {
+        $payload = array_merge(
+            [
+                'email' => 'firma@example.com',
+                'shortName' => 'TT',
+                'longName' => 'Testowa Sp. z o.o.',
+                'taxNumber' => '1234567890',
+                'country' => 'Polska',
+                'city' => 'Wrocław',
+                'postalCode' => '50-001',
+                'street' => 'Piłsudskiego',
+                'buildingNumber' => '10A',
+                'apartmentNumber' => '5',
+                'isActive' => true,
+            ],
+            $override
+        );
+
+        $this->request(
+            'POST',
+            '/api/new-company',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($payload)
+        );
+
+        $response = $this->response();
+        $this->assertSame(200, $response->getStatusCode());
+
+        return $payload;
     }
 }

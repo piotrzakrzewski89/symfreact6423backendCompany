@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Tests;
 
 use App\Application\Factory\CompanyFactory;
+use App\Application\Service\CompanyMailer;
 use App\Application\Service\CompanyService;
 use App\Domain\Repository\CompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class BaseTestController extends WebTestCase
@@ -21,6 +23,8 @@ abstract class BaseTestController extends WebTestCase
     protected EntityManagerInterface $em;
     protected CompanyFactory $factory;
     protected CompanyService $service;
+    protected MessageBusInterface $messageBus;
+    protected CompanyMailer $companyMailer;
 
     protected function setUp(): void
     {
@@ -31,7 +35,9 @@ abstract class BaseTestController extends WebTestCase
         $this->repo = $this->createMock(CompanyRepository::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
         $this->factory = $this->createMock(CompanyFactory::class);
-        $this->service = new CompanyService($this->repo, $this->em, $this->factory);
+        $this->messageBus = $this->createMock(MessageBusInterface::class);
+        $this->companyMailer = $this->createMock(CompanyMailer::class);
+        $this->service = new CompanyService($this->repo, $this->em, $this->factory,  $this->messageBus, $this->companyMailer);
 
         // Przywróć stan bazy
         $connection->executeStatement('TRUNCATE TABLE "company" RESTART IDENTITY CASCADE');

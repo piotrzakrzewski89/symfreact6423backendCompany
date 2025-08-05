@@ -1,0 +1,11 @@
+email.company.created.subject: "Company has been created"
+email.company.created.body: |
+  <p>The company <strong>%longName%</strong> has been created in the system.</p>
+  <p><strong>Contact email:</strong> %email%</p>
+  <p><strong>City:</strong> %city%</p>
+
+email.company.updated.subject: "Company has been updated"
+email.company.updated.body: |
+  <p>The company <strong>%longName%</strong> has been updated in the system.</p>
+  <p><strong>Contact email:</strong> %email%</p>
+  <p><strong>City:</strong> %city%</p>

@@ -6,7 +6,6 @@ namespace App\Application\Factory;
 
 use App\Application\Dto\CompanyDto;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Uid\Uuid;
 
 class CompanyDtoFactory
 {
@@ -19,7 +18,18 @@ class CompanyDtoFactory
         }
 
         // Wymagane pola - jeśli ich brak, rzuć wyjątek
-        $requiredFields = ['uuid', 'email', 'shortName', 'longName', 'taxNumber', 'country', 'city', 'postalCode', 'street', 'buildingNumber', 'isActive'];
+        $requiredFields = [
+            'email',
+            'shortName',
+            'longName',
+            'taxNumber',
+            'country',
+            'city',
+            'postalCode',
+            'street',
+            'buildingNumber',
+            'isActive'
+        ];
 
         foreach ($requiredFields as $field) {
             if (!isset($data[$field])) {
@@ -29,7 +39,6 @@ class CompanyDtoFactory
 
         return new CompanyDto(
             $data['id'] ?? null,
-            Uuid::fromString($data['uuid']),
             $data['email'],
             $data['shortName'],
             $data['longName'],
