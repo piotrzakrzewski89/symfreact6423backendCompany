@@ -75,7 +75,7 @@ class LoginControllerTest extends BaseTestController
     public function testLoginSuccess(): void
     {
         $this->request(
-            'POST', '/api/login', [], [], [
+            'POST', '/api/company/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
             ], json_encode(
                 [
@@ -99,7 +99,7 @@ class LoginControllerTest extends BaseTestController
     public function testLoginWithInvalidEmail(): void
     {
         $this->request(
-            'POST', '/api/login', [], [], [
+            'POST', '/api/company/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
             ], json_encode(
                 [
@@ -115,7 +115,7 @@ class LoginControllerTest extends BaseTestController
     public function testLoginWithInvalidPassword(): void
     {
         $this->request(
-            'POST', '/api/login', [], [], [
+            'POST', '/api/company/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
             ], json_encode(
                 [
@@ -131,7 +131,7 @@ class LoginControllerTest extends BaseTestController
     public function testLoginWithEmptyData(): void
     {
         $this->request(
-            'POST', '/api/login', [], [], [
+            'POST', '/api/company/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
             ], json_encode([])
         );
@@ -156,7 +156,7 @@ class LoginControllerTest extends BaseTestController
         self::getContainer()->get(\Doctrine\ORM\EntityManagerInterface::class)->flush();
 
         $this->request(
-            'POST', '/api/login', [], [], [
+            'POST', '/api/company/login', [], [], [
             'CONTENT_TYPE' => 'application/json',
             ], json_encode(
                 [

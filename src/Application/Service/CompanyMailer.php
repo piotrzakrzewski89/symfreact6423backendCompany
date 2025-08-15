@@ -16,8 +16,7 @@ class CompanyMailer
         private Environment $twig,
         private MessageBusInterface $messageBus,
         private TranslatorInterface $translator,
-    ) {
-    }
+    ) {}
 
     public function sendCreated(Company $company): void
     {
@@ -43,6 +42,44 @@ class CompanyMailer
         $subject = $this->translator->trans('email.company.updated.subject');
         $bodyContent = $this->translator->trans(
             'email.company.updated.body',
+            [
+                '%longName%' => $company->getLongName(),
+                '%email%' => $company->getEmail(),
+                '%city%' => $company->getCity(),
+            ]
+        );
+
+        $body = $this->renderBaseTemplate($subject, $bodyContent);
+
+        $this->messageBus->dispatch(
+            new SendMailMessage($company->getEmail(), $subject, $body)
+        );
+    }
+
+    public function sendChangeActive(Company $company): void
+    {
+        $subject = $this->translator->trans('email.company.changeActive.subject');
+        $bodyContent = $this->translator->trans(
+            'email.company.changeActive.body',
+            [
+                '%longName%' => $company->getLongName(),
+                '%email%' => $company->getEmail(),
+                '%city%' => $company->getCity(),
+            ]
+        );
+
+        $body = $this->renderBaseTemplate($subject, $bodyContent);
+
+        $this->messageBus->dispatch(
+            new SendMailMessage($company->getEmail(), $subject, $body)
+        );
+    }
+
+    public function sendDeleted(Company $company): void
+    {
+        $subject = $this->translator->trans('email.company.deleted.subject');
+        $bodyContent = $this->translator->trans(
+            'email.company.deleted.body',
             [
                 '%longName%' => $company->getLongName(),
                 '%email%' => $company->getEmail(),

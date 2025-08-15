@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -35,10 +36,17 @@ abstract class BaseTestController extends WebTestCase
         $this->repo = $this->createMock(CompanyRepository::class);
         $this->em = $this->createMock(EntityManagerInterface::class);
         $this->factory = $this->createMock(CompanyFactory::class);
+        // Zamockowany MessageBus w kontenerze
         $this->messageBus = $this->createMock(MessageBusInterface::class);
+        $this->messageBus
+            ->method('dispatch')
+            ->willReturnCallback(fn($event) => new \Symfony\Component\Messenger\Envelope($event));
+
+        $this->client->getContainer()->set(MessageBusInterface::class, $this->messageBus);
+        $this->client->disableReboot();
+        
         $this->companyMailer = $this->createMock(CompanyMailer::class);
         $this->service = new CompanyService($this->repo, $this->em, $this->factory,  $this->messageBus, $this->companyMailer);
-
         // Przywróć stan bazy
         $connection->executeStatement('TRUNCATE TABLE "company" RESTART IDENTITY CASCADE');
     }

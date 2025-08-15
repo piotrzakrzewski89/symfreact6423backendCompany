@@ -9,3 +9,15 @@ email.company.updated.body: |
   <p>The company <strong>%longName%</strong> has been updated in the system.</p>
   <p><strong>Contact email:</strong> %email%</p>
   <p><strong>City:</strong> %city%</p>
+
+email.company.deleted.subject: "Company has been deleted"
+email.company.deleted.body: |
+  <p>The company <strong>%longName%</strong> has been deleted in the system.</p>
+  <p><strong>Contact email:</strong> %email%</p>
+  <p><strong>City:</strong> %city%</p>
+
+email.company.changeActive.subject: "Company has been updated - activity change"
+email.company.changeActive.body: |
+  <p>The company <strong>%longName%</strong> has been updated in the system. Activity has been changed.</p>
+  <p><strong>Contact email:</strong> %email%</p>
+  <p><strong>City:</strong> %city%</p>

@@ -28,7 +28,7 @@ class Company
     #[ORM\Column(length: 255, nullable: false)]
     private string $shortName;
     #[ORM\Column(length: 255, nullable: false)]
-    private string $taxNumber;
+    private int $taxNumber;
     #[ORM\Column(length: 255, nullable: false)]
     private string $country;
     #[ORM\Column(length: 255, nullable: false)]
@@ -40,7 +40,7 @@ class Company
     #[ORM\Column(length: 255, nullable: false)]
     private string $buildingNumber;
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $apartmentNumber;
+    private ?int $apartmentNumber;
     #[ORM\Column(nullable: false)]
     private DateTimeImmutable $createdAt;
     #[ORM\Column(nullable: true)]
@@ -64,6 +64,29 @@ class Company
         $this->createdAt = new \DateTimeImmutable();
     }
 
+    public function activate(Admin $admin): void
+    {
+        $this->isActive = true;
+        $this->updatedBy = $admin;
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function deactivate(Admin $admin): void
+    {
+        $this->isActive = false;
+        $this->updatedBy = $admin;
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function softDelete(Admin $admin): void
+    {
+        $this->isDeleted = true;
+        $this->isActive = false;
+        $this->deletedAt = new \DateTimeImmutable();
+        $this->updatedBy = $admin;
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -74,7 +97,7 @@ class Company
         return $this->uuid;
     }
 
-    public function setUuid(?Uuid $uuid): static
+    public function setUuid(Uuid $uuid): static
     {
         $this->uuid = $uuid;
 
@@ -117,12 +140,12 @@ class Company
         return $this;
     }
 
-    public function getTaxNumber(): ?string
+    public function getTaxNumber(): ?int
     {
         return $this->taxNumber;
     }
 
-    public function setTaxNumber(string $taxNumber): static
+    public function setTaxNumber(int $taxNumber): static
     {
         $this->taxNumber = $taxNumber;
 
@@ -189,12 +212,12 @@ class Company
         return $this;
     }
 
-    public function getApartmentNumber(): ?string
+    public function getApartmentNumber(): ?int
     {
         return $this->apartmentNumber;
     }
 
-    public function setApartmentNumber(?string $apartmentNumber): static
+    public function setApartmentNumber(?int $apartmentNumber): static
     {
         $this->apartmentNumber = $apartmentNumber;
 
@@ -283,28 +306,5 @@ class Company
         $this->updatedBy = $updatedBy;
 
         return $this;
-    }
-
-    public function activate(Admin $admin): void
-    {
-        $this->isActive = true;
-        $this->updatedBy = $admin;
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function deactivate(Admin $admin): void
-    {
-        $this->isActive = false;
-        $this->updatedBy = $admin;
-        $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    public function softDelete(Admin $admin): void
-    {
-        $this->isDeleted = true;
-        $this->isActive = false;
-        $this->deletedAt = new \DateTimeImmutable();
-        $this->updatedBy = $admin;
-        $this->updatedAt = new \DateTimeImmutable();
     }
 }

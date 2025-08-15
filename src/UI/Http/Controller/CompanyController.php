@@ -31,6 +31,7 @@ use App\Application\Service\CompanyService;
         new Delete()
     ]
 )]
+#[Route('/api/company', name: 'api_company_')]
 class CompanyController
 {
     public function __construct(
@@ -40,11 +41,10 @@ class CompanyController
         private CompanyService $companyService,
         private CompanyDtoFactory $companyDtoFactory,
         private ValidatorInterface $validator
-    ) {
-    }
+    ) {}
 
     #[OA\Get(
-        path: '/api/get-company',
+        path: '/review/{id}',
         summary: 'Firma po id',
         tags: ['Companies'],
         responses: [
@@ -58,15 +58,15 @@ class CompanyController
             )
         ]
     )]
-    #[Route('/api/get-company/{id}', name: 'api_company_get', methods: ['GET'])]
-    public function getById(int $id): JsonResponse
+    #[Route('/review/{id}', name: 'review', methods: ['GET'])]
+    public function review(int $id): JsonResponse
     {
-        return new JsonResponse(CompanyDto::fromEntities($this->companyRepository->getCompany($id)));
+        return new JsonResponse(CompanyDto::fromEntity($this->companyRepository->getCompany($id)));
     }
 
-        #[OA\Get(
-        path: '/api/list-company',
-        summary: 'Lista Firm',
+    #[OA\Get(
+        path: '/deleted',
+        summary: 'Lista Firm usuniętych',
         tags: ['Companies'],
         responses: [
             new OA\Response(
@@ -79,14 +79,35 @@ class CompanyController
             )
         ]
     )]
-    #[Route('/api/list-company', name: 'api_company_list', methods: ['GET'])]
-    public function list(): JsonResponse
+    #[Route('/deleted', name: 'deleted', methods: ['GET'])]
+    public function deleted(): JsonResponse
     {
-        return new JsonResponse(CompanyDto::fromEntities($this->companyRepository->getAllCompanies()));
+        return new JsonResponse(CompanyDto::fromEntities($this->companyRepository->getAllCompaniesDeleted()));
     }
 
     #[OA\Get(
-        path: '/api/new-company',
+        path: '/active',
+        summary: 'Lista Firm aktywnych',
+        tags: ['Companies'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Lista Firm',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/CompanyDto')
+                )
+            )
+        ]
+    )]
+    #[Route('/active', name: 'active', methods: ['GET'])]
+    public function active(): JsonResponse
+    {
+        return new JsonResponse(CompanyDto::fromEntities($this->companyRepository->getAllCompaniesActive()));
+    }
+
+    #[OA\Get(
+        path: '/new',
         summary: 'Tworzenie firmy',
         tags: ['Companies'],
         responses: [
@@ -100,7 +121,7 @@ class CompanyController
             )
         ]
     )]
-    #[Route('/api/new-company', name: 'api_company_new', methods: ['POST'])]
+    #[Route('/new', name: 'new', methods: ['POST'])]
     public function new(Request $request): JsonResponse
     {
         try {
@@ -117,6 +138,7 @@ class CompanyController
 
         try {
             $company = $this->companyService->createCompany($dto, 1);
+              
         } catch (\DomainException $e) {
             return new JsonResponse(['errors' => $e->getMessage()], 400);
         }
@@ -125,7 +147,7 @@ class CompanyController
     }
 
     #[OA\Get(
-        path: '/api/edit-company',
+        path: '/edit',
         summary: 'Edycja firmy',
         tags: ['Companies'],
         responses: [
@@ -139,7 +161,7 @@ class CompanyController
             )
         ]
     )]
-    #[Route('/api/edit-company/{id}', name: 'api_company_edit', methods: ['POST'])]
+    #[Route('/edit/{id}', name: 'edit', methods: ['POST'])]
     public function edit(Request $request, int $id): JsonResponse
     {
         try {
@@ -168,7 +190,7 @@ class CompanyController
     }
 
     #[OA\Get(
-        path: '/api/delete-company',
+        path: '/delete',
         summary: 'Usuwanie firmy',
         tags: ['Companies'],
         responses: [
@@ -182,7 +204,7 @@ class CompanyController
             )
         ]
     )]
-    #[Route('/api/delete-company/{id}', name: 'api_company_delete', methods: ['POST'])]
+    #[Route('/delete/{id}', name: 'delete', methods: ['POST'])]
     public function delete(int $id): JsonResponse
     {
         $company = $this->companyService->deleteCompany($id, 1);
@@ -195,7 +217,7 @@ class CompanyController
     }
 
     #[OA\Get(
-        path: '/api/change-active-company',
+        path: '/toggle-active',
         summary: 'Zmiana aktywności firmy',
         tags: ['Companies'],
         responses: [
@@ -209,7 +231,7 @@ class CompanyController
             )
         ]
     )]
-    #[Route('/api/change-active-company/{id}', name: 'api_company_change-active', methods: ['POST'])]
+    #[Route('/toggle-active/{id}', name: 'toggle-active', methods: ['POST'])]
     public function changeActive(int $id): JsonResponse
     {
         $company = $this->companyService->changeActive($id, 1);

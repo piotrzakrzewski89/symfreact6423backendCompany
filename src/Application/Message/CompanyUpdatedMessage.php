@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Message;
 
-use Symfony\Component\Uid\Uuid;
+use App\Application\Dto\CompanyMessageDto;
 
 class CompanyUpdatedMessage
 {
     public function __construct(
-        public readonly Uuid $uuid,
-        public readonly string $shortName,
-        public readonly string $longName
+        public readonly CompanyMessageDto $payload
     ) {}
 }

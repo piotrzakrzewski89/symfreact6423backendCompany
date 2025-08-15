@@ -39,17 +39,21 @@ class CompanyDtoFactory
 
         return new CompanyDto(
             $data['id'] ?? null,
+            null,
             $data['email'],
             $data['shortName'],
             $data['longName'],
-            $data['taxNumber'],
+            (int)$data['taxNumber'],
             $data['country'],
             $data['city'],
             $data['postalCode'],
             $data['street'],
             $data['buildingNumber'],
-            $data['apartmentNumber'] ?? null,
+            (int)$data['apartmentNumber'] ?? null,
             $data['isActive'],
+            null,
+            null,
+            null
         );
     }
 }

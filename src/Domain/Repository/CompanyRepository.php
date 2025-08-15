@@ -18,7 +18,7 @@ class CompanyRepository extends ServiceEntityRepository
         parent::__construct($registry, Company::class);
     }
 
-    public function getAllCompanies(): array
+    public function getAllCompaniesActive(): array
     {
         return $this->createQueryBuilder('c')
             ->where('c.isDeleted = false')
@@ -26,13 +26,20 @@ class CompanyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function getCompany(int $id): array
+    public function getAllCompaniesDeleted(): array
     {
         return $this->createQueryBuilder('c')
-            ->where('c.isDeleted = false')
-            ->andWhere('c.id = :id')
-            ->setParameter('id', $id)
+            ->where('c.isDeleted = true')
             ->getQuery()
             ->getResult();
+    }
+
+    public function getCompany(int $id): Company
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getSingleResult();
     }
 }

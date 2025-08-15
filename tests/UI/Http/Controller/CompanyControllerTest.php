@@ -45,19 +45,19 @@ class CompanyControllerTest extends BaseTestController
             'email' => 'firma@example.com',
             'shortName' => 'ZZ',
             'longName' => 'Zmodyfikowana Sp. z o.o.',
-            'taxNumber' => '0987654321',
+            'taxNumber' => 1987654321,
             'country' => 'Polska',
             'city' => 'Warszawa',
             'postalCode' => '00-001',
             'street' => 'Nowa',
             'buildingNumber' => '1',
-            'apartmentNumber' => '10',
+            'apartmentNumber' => 10,
             'isActive' => true,
         ];
 
         $this->request(
             'POST',
-            '/api/edit-company/' . $companyId,
+            '/api/company/edit/' . $companyId,
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -84,7 +84,7 @@ class CompanyControllerTest extends BaseTestController
 
         $this->request(
             'POST',
-            '/api/delete-company/' . 1,
+            '/api/company/delete/' . 1,
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -109,7 +109,7 @@ class CompanyControllerTest extends BaseTestController
 
         $this->request(
             'POST',
-            '/api/change-active-company/' . 1,
+            '/api/company/toggle-active/' . 1,
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -124,7 +124,7 @@ class CompanyControllerTest extends BaseTestController
 
         $this->request(
             'POST',
-            '/api/change-active-company/' . 1,
+            '/api/company/toggle-active/' . 1,
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -141,7 +141,7 @@ class CompanyControllerTest extends BaseTestController
         $this->createCompany(['email' => 'firma2@example.com', 'shortName' => 'F2']);
 
         // Wywołaj endpoint listy
-        $this->request('GET', '/api/list-company');
+        $this->request('GET', '/api/company/active');
 
         $response = $this->response();
         $this->assertSame(200, $response->getStatusCode());
@@ -165,16 +165,17 @@ class CompanyControllerTest extends BaseTestController
     {
         $dto = new CompanyDto(
             null,
+            null,
             'firma@example.com',
             'FN',
             'Firma Nowa',
-            '1234567890',
+            1234567890,
             'Polska',
             'Warszawa',
             '00-001',
             'Ulica',
-            '1',
-            null,
+            '1a',
+            1,
             true
         );
 
@@ -186,16 +187,17 @@ class CompanyControllerTest extends BaseTestController
     {
         $dto = new CompanyDto(
             null,
+            null,
             'zly-email',
             'FN',
             'Firma Nowa',
-            '1234567890',
+            1234567890,
             'Polska',
             'Warszawa',
             '00-001',
             'Ulica',
-            '1',
-            null,
+            '12a',
+            1,
             true
         );
 
@@ -207,16 +209,17 @@ class CompanyControllerTest extends BaseTestController
     {
         $dto = new CompanyDto(
             null,
+            null,
             '', // brak emaila
             '', // brak shortName
             '', // brak longName
-            '', // brak taxNumber
+            0, // brak taxNumber
             '', // brak country
             '', // brak city
             '', // brak postalCode
             '', // brak street
             '', // brak buildingNumber
-            null,
+            0,
             true
         );
 
@@ -244,7 +247,7 @@ class CompanyControllerTest extends BaseTestController
 
         $this->request(
             'POST',
-            '/api/new-company',
+            '/api/company/new',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -266,7 +269,7 @@ class CompanyControllerTest extends BaseTestController
             'email' => 'duplicate@example.com',
             'shortName' => 'F1',
             'longName' => 'Firma 1',
-            'taxNumber' => '1234567890',
+            'taxNumber' => 1234567890,
             'country' => 'PL',
             'city' => 'Warszawa',
             'postalCode' => '00-001',
@@ -275,7 +278,7 @@ class CompanyControllerTest extends BaseTestController
             'apartmentNumber' => null,
             'isActive' => true,
         ];
-        $this->request('POST', '/api/new-company', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($payload1));
+        $this->request('POST', '/api/company/new', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($payload1));
         $response1 = $this->response();
         $this->assertSame(200, $response1->getStatusCode());
 
@@ -283,7 +286,7 @@ class CompanyControllerTest extends BaseTestController
         $payload2 = $payload1;
         $payload2['uuid'] = Uuid::v4()->toRfc4122(); // inny uuid, ale ten sam email
 
-        $this->request('POST', '/api/new-company', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($payload2));
+        $this->request('POST', '/api/company/new', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($payload2));
         $response2 = $this->response();
 
         $this->assertSame(400, $response2->getStatusCode());
@@ -309,7 +312,7 @@ class CompanyControllerTest extends BaseTestController
             'email' => 'firma2@example.com',
             'shortName' => 'F1', // istniejący shortName
             'longName' => 'Firma 2 zmieniona',
-            'taxNumber' => '1234567890',
+            'taxNumber' => 1234567890,
             'country' => 'Polska',
             'city' => 'Miasto',
             'postalCode' => '00-000',
@@ -321,7 +324,7 @@ class CompanyControllerTest extends BaseTestController
 
         $this->request(
             'POST',
-            '/api/edit-company/' . $company2Id,
+            '/api/company/edit/' . $company2Id,
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -340,7 +343,7 @@ class CompanyControllerTest extends BaseTestController
     {
         $this->request(
             'POST',
-            '/api/delete-company/999', // ID, którego nie ma
+            '/api/company/delete/999', // ID, którego nie ma
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -359,7 +362,7 @@ class CompanyControllerTest extends BaseTestController
     {
         $this->request(
             'POST',
-            '/api/change-active-company/999', // ID, którego nie ma
+            '/api/company/toggle-active/999', // ID, którego nie ma
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -383,7 +386,7 @@ class CompanyControllerTest extends BaseTestController
             'email' => 'firma@example.com',
             'shortName' => 'FN',
             'longName' => 'Firma Nowa',
-            'taxNumber' => '1234567890',
+            'taxNumber' => 1234567890,
             'country' => 'Polska',
             'city' => 'Warszawa',
             'postalCode' => '00-001',
@@ -411,7 +414,7 @@ class CompanyControllerTest extends BaseTestController
             'uuid' => Uuid::v4()->toRfc4122(),
             'shortName' => 'FN',
             'longName' => 'Firma Nowa',
-            'taxNumber' => '1234567890',
+            'taxNumber' => 1234567890,
             'country' => 'Polska',
             'city' => 'Warszawa',
             'postalCode' => '00-001',
@@ -448,7 +451,7 @@ class CompanyControllerTest extends BaseTestController
             'email' => 'notfound@example.com',
             'shortName' => 'NF',
             'longName' => 'Not Found',
-            'taxNumber' => '1111111111',
+            'taxNumber' => 1111111111,
             'country' => 'Polska',
             'city' => 'Warszawa',
             'postalCode' => '00-001',
@@ -460,7 +463,7 @@ class CompanyControllerTest extends BaseTestController
 
         $this->request(
             'POST',
-            '/api/edit-company/9999',
+            '/api/company/edit/9999',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -478,7 +481,7 @@ class CompanyControllerTest extends BaseTestController
     {
         $this->request(
             'POST',
-            '/api/delete-company/9999',
+            '/api/company/delete/9999',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json']
@@ -495,7 +498,7 @@ class CompanyControllerTest extends BaseTestController
     {
         $this->request(
             'POST',
-            '/api/change-active-company/9999',
+            '/api/company/toggle-active/9999',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json']
@@ -512,16 +515,17 @@ class CompanyControllerTest extends BaseTestController
     {
         return new CompanyDto(
             null,
+            null,
             'test@example.com',
             'SHORT',
             'Long Name',
-            '1234567890',
+            1234567890,
             'Polska',
             'Warszawa',
             '00-001',
             'Ulica',
-            '1',
-            null,
+            '1a',
+            1,
             true
         );
     }
@@ -567,7 +571,7 @@ class CompanyControllerTest extends BaseTestController
     {
         $this->request(
             'POST',
-            '/api/delete-company/9999',
+            '/api/company/delete/9999',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -586,7 +590,7 @@ class CompanyControllerTest extends BaseTestController
     {
         $this->request(
             'POST',
-            '/api/change-active-company/9999',
+            '/api/company/toggle-active/9999',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -601,23 +605,97 @@ class CompanyControllerTest extends BaseTestController
         $this->assertStringContainsString('Firma nie znaleziona', $data['errors']);
     }
 
-    public function testGetCompanySkipsDeleted(): void
+    public function testReviewCompany(): void
     {
         $payload = $this->createCompany();
 
         $companyRepo = self::getContainer()->get(CompanyRepository::class);
         $company = $companyRepo->findOneBy(['email' => $payload['email']]);
 
-        $this->assertNotNull($company);
+        $this->request('GET', '/api/company/review/' . $company->getId());
 
-        // Ustaw isDeleted na true
+        $response = $this->response();
+        $this->assertSame(200, $response->getStatusCode());
+
+        $data = json_decode((string)$response->getContent(), true);
+        $this->assertSame($payload['email'], $data['email']);
+    }
+
+    public function testDeletedCompanies(): void
+    {
+        $payload = $this->createCompany();
+
+        $companyRepo = self::getContainer()->get(CompanyRepository::class);
+        $company = $companyRepo->findOneBy(['email' => $payload['email']]);
         $company->setIsDeleted(true);
         self::getContainer()->get('doctrine')->getManager()->flush();
 
-        // getCompany powinno zwrócić pustą tablicę
-        $result = $companyRepo->getCompany($company->getId());
+        $this->request('GET', '/api/company/deleted');
 
-        $this->assertCount(0, $result);
+        $response = $this->response();
+        $this->assertSame(200, $response->getStatusCode());
+
+        $data = json_decode((string)$response->getContent(), true);
+        $this->assertNotEmpty($data);
+        $this->assertSame($payload['email'], $data[0]['email']);
+    }
+
+    public function testActiveCompanies(): void
+    {
+        $this->createCompany();
+
+        $this->request('GET', '/api/company/active');
+
+        $response = $this->response();
+        $this->assertSame(200, $response->getStatusCode());
+
+        $data = json_decode((string)$response->getContent(), true);
+        $this->assertNotEmpty($data);
+        $this->assertArrayHasKey('email', $data[0]);
+    }
+
+    public function testGetAllCompaniesActive(): void
+    {
+        $companyRepo = self::getContainer()->get(CompanyRepository::class);
+
+        $this->createCompany(['email' => 'active@example.com', 'shortName' => 'test1']);
+        $this->createCompany(['email' => 'deleted@example.com', 'isActive' => false, 'shortName' => 'test2']);
+
+        $result = $companyRepo->getAllCompaniesActive();
+
+        self::assertCount(2, $result);
+        self::assertSame('active@example.com', $result[0]->getEmail());
+    }
+
+    public function testGetAllCompaniesDeleted(): void
+    {
+        $companyRepo = self::getContainer()->get(CompanyRepository::class);
+
+        $this->createCompany(['email' => 'active@example.com']);
+
+        // Usunięcie jednej firmy
+        $company = $companyRepo->findOneBy(['email' => 'active@example.com']);
+        $company->setIsDeleted(true);
+        $em = self::getContainer()->get('doctrine')->getManager();
+        $em->flush();
+
+        $result = $companyRepo->getAllCompaniesDeleted();
+
+        self::assertCount(1, $result);
+        self::assertSame('active@example.com', $result[0]->getEmail());
+    }
+
+    public function testGetCompany(): void
+    {
+
+        $companyRepo = self::getContainer()->get(CompanyRepository::class);
+
+        $payload = $this->createCompany(['email' => 'findme@example.com']);
+        $company = $companyRepo->findOneBy(['email' => $payload['email']]);
+        $found = $companyRepo->getCompany($company->getId());
+
+        self::assertInstanceOf(Company::class, $found);
+        self::assertSame('findme@example.com', $found->getEmail());
     }
 
     private function createCompany(array $override = []): array
@@ -627,13 +705,13 @@ class CompanyControllerTest extends BaseTestController
                 'email' => 'firma@example.com',
                 'shortName' => 'TT',
                 'longName' => 'Testowa Sp. z o.o.',
-                'taxNumber' => '1234567890',
+                'taxNumber' => 1234567890,
                 'country' => 'Polska',
                 'city' => 'Wrocław',
                 'postalCode' => '50-001',
                 'street' => 'Piłsudskiego',
                 'buildingNumber' => '10A',
-                'apartmentNumber' => '5',
+                'apartmentNumber' => 5,
                 'isActive' => true,
             ],
             $override
@@ -641,7 +719,7 @@ class CompanyControllerTest extends BaseTestController
 
         $this->request(
             'POST',
-            '/api/new-company',
+            '/api/company/new',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],

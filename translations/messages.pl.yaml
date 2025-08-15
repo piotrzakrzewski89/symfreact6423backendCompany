@@ -9,3 +9,16 @@ email.company.updated.body: |
   <p>Firma <strong>%longName%</strong> została zmodyfikowana w systemie.</p>
   <p><strong>Email kontaktowy:</strong> %email%</p>
   <p><strong>Miasto:</strong> %city%</p>
+
+email.company.deleted.subject: "Firma została usunięta"
+email.company.deleted.body: |
+  <p>Firma <strong>%longName%</strong> została usunięta w systemie.</p>
+  <p><strong>Email kontaktowy:</strong> %email%</p>
+  <p><strong>Miasto:</strong> %city%</p>
+
+email.company.changeActive.subject: "Firma została zaktualizowana - zmiana statusu"
+email.company.changeActive.body: |
+  <p>Firma <strong>%longName%</strong> została zmodyfikowana w systemie. Została zmieniona aktywność firmy.</p>
+  <p><strong>Email kontaktowy:</strong> %email%</p>
+  <p><strong>Miasto:</strong> %city%</p>
+
