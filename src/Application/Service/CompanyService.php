@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace App\Application\Service;
 
 use App\Application\Dto\CompanyDto;
-use App\Application\Dto\CompanyMessageDto;
 use App\Application\Factory\CompanyFactory;
-use App\Application\Message\CompanyUpdatedMessage;
 use App\Domain\Entity\Admin;
 use App\Domain\Entity\Company;
-use App\Domain\Enum\CompanyUpdateMessageEnum;
 use App\Domain\Repository\CompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 class CompanyService
 {
@@ -21,7 +17,6 @@ class CompanyService
         private CompanyRepository $companyRepository,
         private EntityManagerInterface $em,
         private CompanyFactory $companyFactory,
-        private MessageBusInterface $messageBus,
         private CompanyMailer $companyMailer
     ) {}
 
@@ -43,20 +38,6 @@ class CompanyService
         $this->em->flush();
 
         $this->companyMailer->sendCreated($company);
-
-        $this->messageBus->dispatch(
-            new CompanyUpdatedMessage(
-                new CompanyMessageDto(
-                    uuid: $company->getUuid(),
-                    action: CompanyUpdateMessageEnum::NEW->value, // update, delete, toggleActive
-                    shortName: $company->getShortName(),
-                    longName: $company->getLongName(),
-                    isActive: $company->isActive(),
-                    email: $company->getEmail(),
-                    isDeleted: $company->isDeleted(),
-                )
-            )
-        );
 
         return $company;
     }
@@ -88,20 +69,6 @@ class CompanyService
 
         $this->companyMailer->sendUpdated($company);
 
-        $this->messageBus->dispatch(
-            new CompanyUpdatedMessage(
-                new CompanyMessageDto(
-                    uuid: $company->getUuid(),
-                    action: CompanyUpdateMessageEnum::EDIT->value, // update, delete, toggleActive
-                    shortName: $company->getShortName(),
-                    longName: $company->getLongName(),
-                    isActive: $company->isActive(),
-                    email: $company->getEmail(),
-                    isDeleted: $company->isDeleted(),
-                )
-            )
-        );
-
         return $company;
     }
 
@@ -124,20 +91,6 @@ class CompanyService
 
         $this->companyMailer->sendChangeActive($company);
 
-        $this->messageBus->dispatch(
-            new CompanyUpdatedMessage(
-                new CompanyMessageDto(
-                    uuid: $company->getUuid(),
-                    action: CompanyUpdateMessageEnum::TOGGLE_ACTIVE->value, // update, delete, toggleActive
-                    shortName: $company->getShortName(),
-                    longName: $company->getLongName(),
-                    isActive: $company->isActive(),
-                    email: $company->getEmail(),
-                    isDeleted: $company->isDeleted(),
-                )
-            )
-        );
-
         return $company;
     }
 
@@ -154,20 +107,6 @@ class CompanyService
         $this->em->flush();
 
         $this->companyMailer->sendDeleted($company);
-
-        $this->messageBus->dispatch(
-            new CompanyUpdatedMessage(
-                new CompanyMessageDto(
-                    uuid: $company->getUuid(),
-                    action: CompanyUpdateMessageEnum::DELETE->value, // update, delete, toggleActive
-                    shortName: $company->getShortName(),
-                    longName: $company->getLongName(),
-                    isActive: $company->isActive(),
-                    email: $company->getEmail(),
-                    isDeleted: $company->isDeleted(),
-                )
-            )
-        );
 
         return $company;
     }

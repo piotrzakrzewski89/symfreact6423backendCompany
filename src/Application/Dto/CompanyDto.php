@@ -115,4 +115,17 @@ class CompanyDto
     {
         return array_map(fn(Company $company) => self::fromEntity($company), $companies);
     }
+
+    public static function fromEntityForm(Company $company): array
+    {
+        return [
+            'uuid' => $company->getUuid(),
+            'longName' => $company->getLongName(),
+        ];
+    }
+
+    public static function fromEntitiesForm(array $companies): array
+    {
+        return array_map(fn(Company $company) => self::fromEntityForm($company), $companies);
+    }
 }

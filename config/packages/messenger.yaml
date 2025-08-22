@@ -10,15 +10,6 @@ framework:
             type: direct
           queues:
             send_mail_event: ~
-      company:
-        dsn: "%env(MESSENGER_TRANSPORT_DSN)%"
-        options:
-          exchange:
-            name: company
-            type: fanout
-          queues:
-            company_event_users: ~
-            company_event_auth: ~
       doctrine_log:
         dsn: "doctrine://default"
         options:
@@ -26,7 +17,4 @@ framework:
     routing:
       'App\Application\Message\SendMailMessage':
         - rabbitmq
-        - doctrine_log
-      'App\Application\Message\CompanyUpdatedMessage':
-        - company
         - doctrine_log
