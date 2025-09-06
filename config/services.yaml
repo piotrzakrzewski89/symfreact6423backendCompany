@@ -20,3 +20,6 @@ services:
         resource: "../src/Application"
         autoconfigure: true
         autowire: true
+    App\Security\KeycloakAuthenticator:
+        autowire: true
+        autoconfigure: true

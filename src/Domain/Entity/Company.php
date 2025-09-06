@@ -12,23 +12,29 @@ use Symfony\Component\Uid\Uuid;
 
 #[ApiResource]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
-#[ORM\Table(name: '`company`')]
+#[ORM\Table(
+    name: '`company`',
+    indexes: [
+        ['name' => 'idx_company_shortname', 'columns' => ['shortName']],
+        ['name' => 'idx_company_uuid', 'columns' => ['uuid']]
+    ]
+)]
 class Company
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private int $id;
-    #[ORM\Column(type: 'uuid', nullable: false)]
+    #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
     private ?Uuid $uuid = null;
-    #[ORM\Column(length: 255, nullable: false)]
+    #[ORM\Column(length: 255, unique: true, nullable: false)]
     private string $email;
+    #[ORM\Column(length: 255, unique: true, nullable: false)]
+    private string $shortName;
     #[ORM\Column(length: 255, nullable: false)]
     private string $longName;
     #[ORM\Column(length: 255, nullable: false)]
-    private string $shortName;
-    #[ORM\Column(length: 255, nullable: false)]
-    private int $taxNumber;
+    private string $taxNumber;
     #[ORM\Column(length: 255, nullable: false)]
     private string $country;
     #[ORM\Column(length: 255, nullable: false)]
@@ -39,55 +45,57 @@ class Company
     private string $street;
     #[ORM\Column(length: 255, nullable: false)]
     private string $buildingNumber;
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(nullable: true)]
     private ?int $apartmentNumber;
     #[ORM\Column(nullable: false)]
     private DateTimeImmutable $createdAt;
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $updatedAt;
-    #[ORM\ManyToOne(targetEntity: Admin::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private Admin $createdBy;
-    #[ORM\ManyToOne(targetEntity: Admin::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Admin $updatedBy;
+    #[ORM\Column(type: 'uuid', nullable: true)]
+    private Uuid  $createdBy;
+    #[ORM\Column(type: 'uuid', nullable: true)]
+    private ?Uuid  $updatedBy;
     #[ORM\Column]
     private bool $isActive;
     #[ORM\Column]
     private bool $isDeleted;
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
+    #[ORM\Column(type: 'boolean')]
+    private bool $isSystem = false;
 
     public function __construct()
     {
         $this->uuid = Uuid::v4();
         $this->createdAt = new \DateTimeImmutable();
+        $this->isDeleted = false;
+        $this->isSystem = false;
     }
 
-    public function activate(Admin $admin): void
+    public function activate(Uuid $adminUuid): void
     {
         $this->isActive = true;
-        $this->updatedBy = $admin;
+        $this->updatedBy = $adminUuid;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function deactivate(Admin $admin): void
+    public function deactivate(Uuid $adminUuid): void
     {
         $this->isActive = false;
-        $this->updatedBy = $admin;
+        $this->updatedBy = $adminUuid;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function softDelete(Admin $admin): void
+    public function softDelete(Uuid $adminUuid): void
     {
         $this->isDeleted = true;
         $this->isActive = false;
         $this->deletedAt = new \DateTimeImmutable();
-        $this->updatedBy = $admin;
+        $this->updatedBy = $adminUuid;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -116,18 +124,6 @@ class Company
         return $this;
     }
 
-    public function getLongName(): ?string
-    {
-        return $this->longName;
-    }
-
-    public function setLongName(string $longName): static
-    {
-        $this->longName = $longName;
-
-        return $this;
-    }
-
     public function getShortName(): ?string
     {
         return $this->shortName;
@@ -140,12 +136,24 @@ class Company
         return $this;
     }
 
-    public function getTaxNumber(): ?int
+    public function getLongName(): ?string
+    {
+        return $this->longName;
+    }
+
+    public function setLongName(string $longName): static
+    {
+        $this->longName = $longName;
+
+        return $this;
+    }
+
+    public function getTaxNumber(): ?string
     {
         return $this->taxNumber;
     }
 
-    public function setTaxNumber(int $taxNumber): static
+    public function setTaxNumber(string $taxNumber): static
     {
         $this->taxNumber = $taxNumber;
 
@@ -248,6 +256,30 @@ class Company
         return $this;
     }
 
+    public function getCreatedBy(): ?Uuid
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?Uuid $createdBy): static
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getUpdatedBy(): ?Uuid
+    {
+        return $this->updatedBy;
+    }
+
+    public function setUpdatedBy(?Uuid $updatedBy): static
+    {
+        $this->updatedBy = $updatedBy;
+
+        return $this;
+    }
+
     public function isActive(): ?bool
     {
         return $this->isActive;
@@ -284,26 +316,14 @@ class Company
         return $this;
     }
 
-    public function getCreatedBy(): ?Admin
+    public function isSystem(): ?bool
     {
-        return $this->createdBy;
+        return $this->isSystem;
     }
 
-    public function setCreatedBy(?Admin $createdBy): static
+    public function setIsSystem(bool $isSystem): static
     {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?Admin
-    {
-        return $this->updatedBy;
-    }
-
-    public function setUpdatedBy(?Admin $updatedBy): static
-    {
-        $this->updatedBy = $updatedBy;
+        $this->isSystem = $isSystem;
 
         return $this;
     }

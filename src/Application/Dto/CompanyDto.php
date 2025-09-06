@@ -27,7 +27,7 @@ class CompanyDto
 
     #[Assert\NotBlank(message: 'NIP jest wymagany')]
     #[Assert\Length(min: 10, max: 10, exactMessage: 'NIP musi mieć dokładnie 10 znaków')]
-    public int $taxNumber;
+    public string $taxNumber;
 
     #[Assert\NotBlank(message: 'Kraj jest wymagany')]
     public string $country;
@@ -58,7 +58,7 @@ class CompanyDto
         string $email,
         string $shortName,
         string $longName,
-        int $taxNumber,
+        string $taxNumber,
         string $country,
         string $city,
         string $postalCode,
